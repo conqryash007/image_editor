@@ -1,0 +1,22 @@
+.editor {
+  display: flex;
+}
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  width: 100px;
+}
+
+.canvas-screen {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.other-tools {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 50px;
+}
