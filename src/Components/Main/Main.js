@@ -2,15 +2,20 @@ import React, { useEffect, useState, useRef } from "react";
 import { fabric } from "fabric";
 
 import "./main.css";
+import back from "./../../assets/vecteezy_transparent-background-4k-empty-grid-checkered-layout-wallpaper_21736279.jpg";
+
+const fonts = ["serif", "sans-serif", "monospace"];
 
 const Main = () => {
   const [canvas, setCanvas] = useState("");
   const [imgURL, setImgURL] = useState("");
   const [canvasSize, setCanvasSize] = useState({
-    height: 10,
-    width: 20,
+    height: 15,
+    width: 25,
   });
-  const [backgroundColor, setBackgroundColor] = useState(`#000`);
+  const [backgroundColor, setBackgroundColor] = useState(null);
+
+  const [isTextSelected, setIsTextSelected] = useState(false);
 
   const colorInputRef = useRef(null);
   const canvasRef = useRef(null);
@@ -22,15 +27,36 @@ const Main = () => {
       width: canvasSize.width * 37.795275591,
       preserveObjectStacking: true,
     });
-    setCanvas(can);
+    can.renderAll.bind(can)();
 
+    // CHANGE BACKGROUND IMAGE IN CANVAS
+    fabric.Image.fromURL(back, (img) => {
+      img.set({ excludeFromExport: true });
+      can.setBackgroundImage(img, can.renderAll.bind(can), {
+        scaleX: can.width / img.width,
+        scaleY: can.height / img.height,
+      });
+    });
+    setCanvas(can);
+    //DELETE ELEMENT FROM CANVAS
     const handleKeyDown = (event) => {
       if (event.key === "Delete") {
         removeSelectedObject(can);
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
+
+    const handleObjectSelected = (event) => {
+      console.log(event);
+      if (event.selected[0].text) {
+        setIsTextSelected(true);
+      } else {
+        setIsTextSelected(false);
+      }
+    };
+
+    can.on("selection:created", handleObjectSelected);
+    can.on("selection:updated", handleObjectSelected);
 
     return () => {
       can.dispose();
@@ -41,13 +67,15 @@ const Main = () => {
     const rect = new fabric.Rect({
       height: 280,
       width: 200,
-      fill: "yellow",
+      fill: "white",
     });
     canvas.add(rect);
     canvas.renderAll();
   };
 
   const download = () => {
+    canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+
     const dataUrl = canvas.toDataURL({
       width: canvas.width,
       height: canvas.height,
@@ -62,6 +90,14 @@ const Main = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    fabric.Image.fromURL(back, (img) => {
+      img.set({ excludeFromExport: true });
+      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+        scaleX: canvas.width / img.width,
+        scaleY: canvas.height / img.height,
+      });
+    });
   };
   const saveJsonTemplate = () => {
     const canvasJSON = canvas.toJSON();
@@ -69,12 +105,19 @@ const Main = () => {
   };
 
   const addText = () => {
-    const newText = new fabric.IText("Id: ", {
+    const newText = new fabric.Textbox("Id:", {
       left: 300,
       top: 200,
-      fill: "green",
     });
     canvas.add(newText);
+  };
+  const addIdPin = (str) => {
+    const text = new fabric.Textbox(str, {
+      left: 300,
+      top: 200,
+    });
+
+    canvas.add(text);
   };
 
   const addImg = () => {
@@ -108,11 +151,6 @@ const Main = () => {
     }
   };
 
-  const handleColorChange = () => {
-    const selectedColor = colorInputRef.current.value;
-    setBackgroundColor(selectedColor);
-  };
-
   const removeSelectedObject = (canvas) => {
     const selectedObject = canvas.getActiveObject();
     if (selectedObject) {
@@ -134,6 +172,26 @@ const Main = () => {
     }
   };
 
+  const handleTextChange = (event, action) => {
+    const selectedObject = canvas.getActiveObject();
+    if (action === "font") {
+      if (selectedObject) {
+        const newFontFamily = event.target.value;
+        selectedObject.set({ fontFamily: newFontFamily });
+      }
+    } else if (action === "bold") {
+      if (selectedObject) {
+        const isBold =
+          !selectedObject.get("fontWeight") ||
+          selectedObject.get("fontWeight") === "normal";
+
+        console.log(isBold);
+        selectedObject.set({ fontWeight: isBold ? "bold" : "normal" });
+      }
+    }
+    canvas.renderAll();
+  };
+
   return (
     <div>
       <div className="other-tools">
@@ -146,17 +204,36 @@ const Main = () => {
           <button onClick={saveJsonTemplate}>Download Json</button>
         </div>
       </div>
+
+      {isTextSelected ? (
+        <div className="text-tools">
+          <select onChange={(e) => handleTextChange(e, "font")}>
+            {fonts.map((curr, i) => {
+              return (
+                <option value={curr} key={i}>
+                  {curr}
+                </option>
+              );
+            })}
+          </select>
+
+          <label>
+            Size:
+            <input type="number" />
+          </label>
+
+          <button onClick={(e) => handleTextChange(e, "bold")}>B</button>
+        </div>
+      ) : (
+        <></>
+      )}
       <div className="editor">
         <div className="tools">
           <button onClick={() => addRectangle(canvas)}>Add rect</button>
+          <button onClick={() => addIdPin("[ID]")}>Add ID</button>
+          <button onClick={() => addIdPin("[PIN]")}>Add PIN</button>
           <button onClick={addText}>Add Text</button>
-          <input
-            type="color"
-            id="colorInput"
-            ref={colorInputRef}
-            defaultValue={backgroundColor}
-            onChange={handleColorChange}
-          />
+
           <label>
             Height (in cm)
             <input
