@@ -10,6 +10,7 @@ const fonts = ["serif", "sans-serif", "monospace"];
 const Main = () => {
   const [canvas, setCanvas] = useState("");
   const [imgURL, setImgURL] = useState("");
+  const [sizeOfQr, setSizeOfQr] = useState(200);
   const [canvasSize, setCanvasSize] = useState({
     height: 13,
     width: 25,
@@ -88,25 +89,6 @@ const Main = () => {
           scaleY: canvas.height / img.height,
         });
       });
-
-      window.location.reload();
-      // const mainCanvas = canvas;
-      // const tempCanvas = canvas;
-      // const selectedObject = mainCanvas.getActiveObject();
-      // if (selectedObject) {
-      //   // Clear the temporary canvas and add the selected object to it
-      //   tempCanvas.clear();
-      //   tempCanvas.add(selectedObject);
-      //   // Convert the temporary canvas to a data URL (PNG format)
-      //   const dataURL = tempCanvas.toDataURL({
-      //     format: "png",
-      //   });
-      //   // Create a temporary link and trigger the download
-      //   const downloadLink = document.createElement("a");
-      //   downloadLink.href = dataURL;
-      //   downloadLink.download = "selected_object.png";
-      //   downloadLink.click();
-      // }
     } catch (err) {
       alert(err.message);
       window.location.reload();
@@ -114,12 +96,51 @@ const Main = () => {
   };
   const saveJsonTemplate = () => {
     try {
-      const canvasJSON = canvas.toJSON();
+      const canvasJSON = canvas.toJSON(["subType", "qrSize"]);
       console.log("Fabric.js Canvas JSON:", canvasJSON);
+
+      canvasJSON.canvasSize = {
+        height: canvasSize.height * 37.795275591,
+        width: canvasSize.width * 37.795275591,
+      };
+
+      const blob = new Blob([JSON.stringify(canvasJSON)], {
+        type: "application/json",
+      });
+
+      // Create a download link
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "fabric-canvas.json";
+
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (err) {
       alert(err.message);
       window.location.reload();
     }
+  };
+
+  // FILE LOAD
+  const handleTemplateUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const jsonString = e.target.result;
+        loadFromJsonFile(jsonString);
+      };
+
+      reader.readAsText(file);
+    }
+  };
+  const loadFromJsonFile = (jsonString) => {
+    canvas.loadFromJSON(jsonString, () => {
+      canvas.renderAll();
+    });
   };
 
   // ADD OBJECTS AND TEXTS
@@ -129,6 +150,7 @@ const Main = () => {
         height: 280,
         width: 200,
         fill: "white",
+        subType: "Rectangle",
       });
       canvas.add(rect);
       canvas.renderAll();
@@ -139,10 +161,13 @@ const Main = () => {
   };
   const addText = () => {
     try {
-      const newText = new fabric.Textbox("Id:", {
+      const newText = new fabric.Textbox("type your text...", {
         left: 300,
         top: 200,
+        width: 262,
+        subType: "CustomText",
       });
+
       canvas.add(newText);
     } catch (err) {
       alert(err.message);
@@ -154,9 +179,12 @@ const Main = () => {
       const text = new fabric.Textbox(str, {
         left: 300,
         top: 200,
+        subType: str,
       });
 
       canvas.add(text);
+
+      canvas.renderAll();
     } catch (err) {
       alert(err.message);
       window.location.reload();
@@ -174,12 +202,9 @@ const Main = () => {
       //   { crossOrigin: "*" }
       // );
 
-      // Replace this content with the actual data you want for the QR code
-      const qrCodeContent = "https://example.com";
-
       // Generate QR code using QRious
       const qr = new QRious({
-        size: 200,
+        size: sizeOfQr,
         value: "https://github.com/neocotic/qrious",
       });
 
@@ -189,6 +214,8 @@ const Main = () => {
         img.set({
           left: 50,
           top: 50,
+          subType: "qr",
+          qrSize: sizeOfQr,
         });
 
         // Add the QR code image to the canvas
@@ -213,6 +240,7 @@ const Main = () => {
           const imageUrl = e.target.result;
 
           fabric.Image.fromURL(imageUrl, (img) => {
+            img.set({ subType: "BaseImage" });
             canvas.add(img);
             canvas.renderAll();
           });
@@ -296,7 +324,13 @@ const Main = () => {
         </div>
         <div className="file-save">
           <button onClick={download}>Download</button>
-          <button onClick={saveJsonTemplate}>Download Json</button>
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleTemplateUpload}
+            placeholder="Upload Template"
+          />
+          <button onClick={saveJsonTemplate}>Download Template</button>
         </div>
       </div>
 
@@ -362,7 +396,14 @@ const Main = () => {
             />
           </label>
           <input type="file" accept="image/*" onChange={handleImageUpload} />
-          <button onClick={addImg}>Add Img</button>
+          <div>
+            <input
+              type="number"
+              onChange={(e) => setSizeOfQr(Number(e.target.value))}
+              placeholder="Enter size of qr"
+            />
+            <button onClick={addImg}>Add Qr</button>
+          </div>
         </div>
         <div className="canvas-screen">
           <canvas id="canvas" ref={canvasRef} />
