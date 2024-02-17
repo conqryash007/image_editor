@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { fabric } from "fabric";
+import QRious from "qrious";
 
 import "./main.css";
 import back from "./../../assets/vecteezy_transparent-background-4k-empty-grid-checkered-layout-wallpaper_21736279.jpg";
@@ -10,7 +11,7 @@ const Main = () => {
   const [canvas, setCanvas] = useState("");
   const [imgURL, setImgURL] = useState("");
   const [canvasSize, setCanvasSize] = useState({
-    height: 15,
+    height: 13,
     width: 25,
   });
   const [backgroundColor, setBackgroundColor] = useState(null);
@@ -46,150 +47,244 @@ const Main = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
 
-    const handleObjectSelected = (event) => {
-      console.log(event);
-      if (event.selected[0].text) {
-        setIsTextSelected(true);
-      } else {
-        setIsTextSelected(false);
-      }
-    };
+    // const handleObjectSelected = (event) => {
+    //   console.log(event);
+    //   if (event.selected[0].text) {
+    //     setIsTextSelected(true);
+    //   } else {
+    //     setIsTextSelected(false);
+    //   }
+    // };
 
-    can.on("selection:created", handleObjectSelected);
-    can.on("selection:updated", handleObjectSelected);
+    // can.on("selection:created", handleObjectSelected);
+    // can.on("selection:updated", handleObjectSelected);
 
     return () => {
       can.dispose();
     };
   }, [backgroundColor, canvasSize.height, canvasSize.width]);
 
-  const addRectangle = (canvas) => {
-    const rect = new fabric.Rect({
-      height: 280,
-      width: 200,
-      fill: "white",
-    });
-    canvas.add(rect);
-    canvas.renderAll();
-  };
-
+  // FILE SAVE FUNCTIONS
   const download = () => {
-    canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
-
-    const dataUrl = canvas.toDataURL({
-      width: canvas.width,
-      height: canvas.height,
-      left: 0,
-      top: 0,
-      format: "png",
-    });
-
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = "canvas_image.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    fabric.Image.fromURL(back, (img) => {
-      img.set({ excludeFromExport: true });
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-        scaleX: canvas.width / img.width,
-        scaleY: canvas.height / img.height,
+    try {
+      canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+      const dataUrl = canvas.toDataURL({
+        width: canvas.width,
+        height: canvas.height,
+        left: 0,
+        top: 0,
+        format: "png",
       });
-    });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = "canvas_image.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      fabric.Image.fromURL(back, (img) => {
+        img.set({ excludeFromExport: true });
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+          scaleX: canvas.width / img.width,
+          scaleY: canvas.height / img.height,
+        });
+      });
+
+      window.location.reload();
+      // const mainCanvas = canvas;
+      // const tempCanvas = canvas;
+      // const selectedObject = mainCanvas.getActiveObject();
+      // if (selectedObject) {
+      //   // Clear the temporary canvas and add the selected object to it
+      //   tempCanvas.clear();
+      //   tempCanvas.add(selectedObject);
+      //   // Convert the temporary canvas to a data URL (PNG format)
+      //   const dataURL = tempCanvas.toDataURL({
+      //     format: "png",
+      //   });
+      //   // Create a temporary link and trigger the download
+      //   const downloadLink = document.createElement("a");
+      //   downloadLink.href = dataURL;
+      //   downloadLink.download = "selected_object.png";
+      //   downloadLink.click();
+      // }
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
+    }
   };
   const saveJsonTemplate = () => {
-    const canvasJSON = canvas.toJSON();
-    console.log("Fabric.js Canvas JSON:", canvasJSON);
+    try {
+      const canvasJSON = canvas.toJSON();
+      console.log("Fabric.js Canvas JSON:", canvasJSON);
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
+    }
   };
 
+  // ADD OBJECTS AND TEXTS
+  const addRectangle = (canvas) => {
+    try {
+      const rect = new fabric.Rect({
+        height: 280,
+        width: 200,
+        fill: "white",
+      });
+      canvas.add(rect);
+      canvas.renderAll();
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
+    }
+  };
   const addText = () => {
-    const newText = new fabric.Textbox("Id:", {
-      left: 300,
-      top: 200,
-    });
-    canvas.add(newText);
+    try {
+      const newText = new fabric.Textbox("Id:", {
+        left: 300,
+        top: 200,
+      });
+      canvas.add(newText);
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
+    }
   };
   const addIdPin = (str) => {
-    const text = new fabric.Textbox(str, {
-      left: 300,
-      top: 200,
-    });
+    try {
+      const text = new fabric.Textbox(str, {
+        left: 300,
+        top: 200,
+      });
 
-    canvas.add(text);
+      canvas.add(text);
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
+    }
   };
-
   const addImg = () => {
-    new fabric.Image.fromURL(
-      "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example",
-      (img) => {
+    try {
+      // new fabric.Image.fromURL(
+      //   "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example",
+      //   (img) => {
+      //     canvas.add(img);
+      //     canvas.renderAll();
+      //     setImgURL("");
+      //   },
+      //   { crossOrigin: "*" }
+      // );
+
+      // Replace this content with the actual data you want for the QR code
+      const qrCodeContent = "https://example.com";
+
+      // Generate QR code using QRious
+      const qr = new QRious({
+        size: 200,
+        value: "https://github.com/neocotic/qrious",
+      });
+
+      // Create a Fabric.js image object with the QR code data URL
+      fabric.Image.fromURL(qr.toDataURL(), (img) => {
+        // Set the position and size of the QR code on the canvas
+        img.set({
+          left: 50,
+          top: 50,
+        });
+
+        // Add the QR code image to the canvas
         canvas.add(img);
         canvas.renderAll();
-        setImgURL("");
-      },
-      { crossOrigin: "*" }
-    );
+      });
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
+    }
   };
 
+  // ADD AND REMOVE HANDLER
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
+    try {
+      const file = event.target.files[0];
 
-    if (file) {
-      const reader = new FileReader();
+      if (file) {
+        const reader = new FileReader();
 
-      reader.onload = (e) => {
-        const imageUrl = e.target.result;
+        reader.onload = (e) => {
+          const imageUrl = e.target.result;
 
-        fabric.Image.fromURL(imageUrl, (img) => {
-          canvas.add(img);
-          canvas.renderAll();
-        });
-      };
+          fabric.Image.fromURL(imageUrl, (img) => {
+            canvas.add(img);
+            canvas.renderAll();
+          });
+        };
 
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
     }
   };
-
   const removeSelectedObject = (canvas) => {
-    const selectedObject = canvas.getActiveObject();
-    if (selectedObject) {
-      canvas.remove(selectedObject);
+    try {
+      const selectedObject = canvas.getActiveObject();
+      if (selectedObject) {
+        canvas.remove(selectedObject);
+      }
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
     }
   };
 
+  // z-index change
   const moveObjectForward = () => {
-    const selectedObject = canvas.getActiveObject();
-    if (selectedObject) {
-      canvas.bringForward(selectedObject);
+    try {
+      const selectedObject = canvas.getActiveObject();
+      if (selectedObject) {
+        canvas.bringForward(selectedObject);
+      }
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
     }
   };
-
   const moveObjectBackward = () => {
-    const selectedObject = canvas.getActiveObject();
-    if (selectedObject) {
-      canvas.sendBackwards(selectedObject);
+    try {
+      const selectedObject = canvas.getActiveObject();
+      if (selectedObject) {
+        canvas.sendBackwards(selectedObject);
+      }
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
     }
   };
 
+  // text changes
   const handleTextChange = (event, action) => {
-    const selectedObject = canvas.getActiveObject();
-    if (action === "font") {
-      if (selectedObject) {
-        const newFontFamily = event.target.value;
-        selectedObject.set({ fontFamily: newFontFamily });
-      }
-    } else if (action === "bold") {
-      if (selectedObject) {
-        const isBold =
-          !selectedObject.get("fontWeight") ||
-          selectedObject.get("fontWeight") === "normal";
+    try {
+      const selectedObject = canvas.getActiveObject();
+      if (action === "font") {
+        if (selectedObject) {
+          const newFontFamily = event.target.value;
+          selectedObject.set({ fontFamily: newFontFamily });
+        }
+      } else if (action === "bold") {
+        if (selectedObject) {
+          const isBold =
+            !selectedObject.get("fontWeight") ||
+            selectedObject.get("fontWeight") === "normal";
 
-        console.log(isBold);
-        selectedObject.set({ fontWeight: isBold ? "bold" : "normal" });
+          console.log(isBold);
+          selectedObject.set({ fontWeight: isBold ? "bold" : "normal" });
+        }
       }
+      canvas.renderAll();
+    } catch (err) {
+      alert(err.message);
+      window.location.reload();
     }
-    canvas.renderAll();
   };
 
   return (
@@ -205,8 +300,9 @@ const Main = () => {
         </div>
       </div>
 
-      {isTextSelected ? (
-        <div className="text-tools">
+      <div className="text-tools">
+        <label>
+          Font:
           <select onChange={(e) => handleTextChange(e, "font")}>
             {fonts.map((curr, i) => {
               return (
@@ -216,17 +312,16 @@ const Main = () => {
               );
             })}
           </select>
+        </label>
 
-          <label>
-            Size:
-            <input type="number" />
-          </label>
+        <label>
+          Size:
+          <input type="number" />
+        </label>
 
-          <button onClick={(e) => handleTextChange(e, "bold")}>B</button>
-        </div>
-      ) : (
-        <></>
-      )}
+        <button onClick={(e) => handleTextChange(e, "bold")}>Bold</button>
+      </div>
+
       <div className="editor">
         <div className="tools">
           <button onClick={() => addRectangle(canvas)}>Add rect</button>

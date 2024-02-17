@@ -18,7 +18,10 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
+
+  background-color: rgba(0, 0, 0, 0.474);
+  padding: 10px 0;
 }
 
 .text-tools {
@@ -26,4 +29,7 @@
   display: flex;
   justify-content: space-evenly;
   margin-bottom: 20px;
+
+  background-color: rgba(0, 0, 0, 0.474);
+  padding: 10px 0;
 }
