@@ -194,9 +194,16 @@ const Generator = () => {
   };
   return (
     <div className="generator">
+      <h1 style={{ margin: "auto" }}>STICKER GENERATOR</h1>
       <div className="files-up">
         <div className="excel-reader">
-          <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+          <h1>UPLOAD EXCEL FILE</h1>
+          <input
+            className="css-input"
+            type="file"
+            accept=".xlsx, .xls"
+            onChange={handleFileUpload}
+          />
 
           {excelData.length > 0 && (
             <div className="table-container">
@@ -222,7 +229,14 @@ const Generator = () => {
           )}
         </div>
         <div className="template">
-          <input type="file" accept=".json" onChange={handleTemplateUpload} />
+          <h1>UPLOAD TEMPLATE</h1>
+
+          <input
+            className="css-input"
+            type="file"
+            accept=".json"
+            onChange={handleTemplateUpload}
+          />
         </div>
       </div>
 
@@ -235,10 +249,18 @@ const Generator = () => {
         </div>
       )}
 
-      <button disabled={loading} onClick={() => generatePreview()}>
+      <button
+        className="btn-up-b"
+        disabled={loading}
+        onClick={() => generatePreview()}
+      >
         SHOW PREVIEW
       </button>
-      <button disabled={loading} onClick={() => generateSticker()}>
+      <button
+        className="btn-up-g"
+        disabled={loading}
+        onClick={() => generateSticker()}
+      >
         GENERATE ALL
       </button>
 

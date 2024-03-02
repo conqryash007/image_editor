@@ -17,8 +17,6 @@ const Main = () => {
   });
   const [backgroundColor, setBackgroundColor] = useState(null);
 
-  const [isTextSelected, setIsTextSelected] = useState(false);
-
   const colorInputRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -176,9 +174,14 @@ const Main = () => {
   };
   const addIdPin = (str) => {
     try {
-      const text = new fabric.Textbox(str, {
-        left: 300,
-        top: 200,
+      let written = "1779";
+
+      if (str === "[ID]") {
+        written = "23443";
+      }
+      const text = new fabric.Textbox(written, {
+        left: canvas.width / 2,
+        top: canvas.height / 2,
         subType: str,
       });
 
@@ -319,25 +322,37 @@ const Main = () => {
     <div>
       <div className="other-tools">
         <div className="layer">
-          <button onClick={moveObjectForward}>Move Forward</button>
-          <button onClick={moveObjectBackward}>Move Backward</button>
+          <button className="blbtn" onClick={moveObjectForward}>
+            Move Forward
+          </button>
+          <button className="blbtn" onClick={moveObjectBackward}>
+            Move Backward
+          </button>
         </div>
         <div className="file-save">
-          <button onClick={download}>Download</button>
+          <button onClick={download} className="gbtn">
+            Download
+          </button>
           <input
+            className="css-input"
             type="file"
             accept=".json"
             onChange={handleTemplateUpload}
             placeholder="Upload Template"
           />
-          <button onClick={saveJsonTemplate}>Download Template</button>
+          <button onClick={saveJsonTemplate} className="gbtn">
+            Download Template
+          </button>
         </div>
       </div>
 
       <div className="text-tools">
         <label>
           Font:
-          <select onChange={(e) => handleTextChange(e, "font")}>
+          <select
+            className="css-input"
+            onChange={(e) => handleTextChange(e, "font")}
+          >
             {fonts.map((curr, i) => {
               return (
                 <option value={curr} key={i}>
@@ -350,59 +365,83 @@ const Main = () => {
 
         <label>
           Size:
-          <input type="number" />
+          <input className="css-input" type="number" />
         </label>
 
-        <button onClick={(e) => handleTextChange(e, "bold")}>Bold</button>
+        <button className="bbtn" onClick={(e) => handleTextChange(e, "bold")}>
+          Bold
+        </button>
       </div>
 
       <div className="editor">
         <div className="tools">
-          <button onClick={() => addRectangle(canvas)}>Add rect</button>
-          <button onClick={() => addIdPin("[ID]")}>Add ID</button>
-          <button onClick={() => addIdPin("[PIN]")}>Add PIN</button>
-          <button onClick={addText}>Add Text</button>
+          <button className="ybtn" onClick={() => addRectangle(canvas)}>
+            Add rect
+          </button>
+          <button className="blbtn" onClick={() => addIdPin("[ID]")}>
+            Add ID
+          </button>
+          <button className="rbtn" onClick={() => addIdPin("[PIN]")}>
+            Add PIN
+          </button>
+          <button className="lbtn" onClick={addText}>
+            Add Text
+          </button>
+          <div className="canvas-size-editor">
+            <p>Add your image</p>
+            <input
+              className="css-input"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+          </div>
 
-          <label>
-            Height (in cm)
-            <input
-              type="number"
-              min={0}
-              value={canvasSize.height}
-              onChange={(e) => {
-                setCanvasSize((curr) => {
-                  return {
-                    ...curr,
-                    height: Number(e.target.value),
-                  };
-                });
-              }}
-            />
-          </label>
-          <label>
-            Width (in cm)
-            <input
-              type="number"
-              min={0}
-              value={canvasSize.width}
-              onChange={(e) => {
-                setCanvasSize((curr) => {
-                  return {
-                    ...curr,
-                    width: Number(e.target.value),
-                  };
-                });
-              }}
-            />
-          </label>
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
-          <div>
+          <div className="canvas-size-editor">
+            <p>Canvas Size:</p>
+            <label>
+              Height (in cm)
+              <input
+                type="number"
+                min={0}
+                value={canvasSize.height}
+                onChange={(e) => {
+                  setCanvasSize((curr) => {
+                    return {
+                      ...curr,
+                      height: Number(e.target.value),
+                    };
+                  });
+                }}
+              />
+            </label>
+            <label>
+              Width (in cm)
+              <input
+                type="number"
+                min={0}
+                value={canvasSize.width}
+                onChange={(e) => {
+                  setCanvasSize((curr) => {
+                    return {
+                      ...curr,
+                      width: Number(e.target.value),
+                    };
+                  });
+                }}
+              />
+            </label>
+          </div>
+          <div className="canvas-size-editor">
+            <p>Qr Editor</p>
             <input
               type="number"
               onChange={(e) => setSizeOfQr(Number(e.target.value))}
               placeholder="Enter size of qr"
             />
-            <button onClick={addImg}>Add Qr</button>
+            <button className="rbtn" onClick={addImg}>
+              Add Qr
+            </button>
           </div>
         </div>
         <div className="canvas-screen">
