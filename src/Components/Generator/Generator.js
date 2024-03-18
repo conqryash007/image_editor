@@ -7,6 +7,7 @@ import JSZip from "jszip";
 import { CONSTANTS } from "../extra/Extra";
 
 import "./gen.css";
+import jsPDF from "jspdf";
 
 const Generator = () => {
   const [excelData, setExcelData] = useState([]);
@@ -113,26 +114,106 @@ const Generator = () => {
             const canvas = canvasRef.current;
             const dataURL = canvas.toDataURL({ format: "png" });
 
-            const fileName = `qr_${i + 1}.png`;
-            zip.file(fileName, dataURL.split(",")[1], { base64: true });
-
             resolve();
           });
         });
       }
 
-      const content = await zip.generateAsync({ type: "blob" });
-
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(content);
-      link.download = "canvas_images.zip";
-      link.click();
       setLoading(false);
     } catch (error) {
       console.error("Error in generateSticker:", error);
       setLoading(false);
     }
   };
+
+  const generatePDF = async () => {
+    try {
+      if (excelData.length < 1 || !jsonTemplate) {
+        alert("Add both the files");
+        return;
+      }
+
+      setLoading(true);
+
+      const objects = JSON.parse(jsonTemplate);
+
+      const pdf = new jsPDF("p", "mm", "a3"); // Initialize PDF
+      const pageWidth = pdf.internal.pageSize.width;
+      let currentX = 0;
+      let currentY = 0;
+
+      for (let i = 0; i < excelData.length; i++) {
+        const currQr = excelData[i];
+
+        objects.objects.forEach((curr) => {
+          if (curr["subType"] === CONSTANTS.id) {
+            curr.text = currQr.id;
+          }
+          if (curr["subType"] === CONSTANTS.pin) {
+            curr.text = currQr.pin;
+          }
+          if (curr["subType"] === CONSTANTS.qr) {
+            const qr = new QRious({
+              size: curr.qrSize || 150,
+              value: currQr.url,
+            });
+
+            const base64QRimage = qr.toDataURL();
+
+            curr.src = base64QRimage;
+          }
+        });
+
+        const jsonToRender = JSON.stringify(objects);
+
+        await new Promise((resolve) => {
+          can.loadFromJSON(jsonToRender, () => {
+            can.renderAll();
+
+            const canvas = canvasRef.current;
+            const dataURL = canvas.toDataURL({ format: "png" });
+            const imageWidth = (canvas.width * 25.4) / 96; // Convert pixels to mm
+            const imageHeight = (canvas.height * 25.4) / 96; // Convert pixels to mm
+
+            // Check if there's enough space for the image
+            if (currentX + imageWidth > pageWidth) {
+              currentX = 0;
+              currentY += imageHeight;
+            }
+
+            // Check if there's enough space for the next row
+            if (currentY + imageHeight > pdf.internal.pageSize.height) {
+              pdf.addPage();
+              currentX = 0;
+              currentY = 0;
+            }
+
+            // Add image to PDF
+            pdf.addImage(dataURL, "PNG", currentX, currentY);
+            currentX += imageWidth;
+
+            resolve();
+          });
+        });
+      }
+
+      pdf.save("stacked_images.pdf"); // Save PDF
+      setLoading(false);
+    } catch (error) {
+      console.error("Error in generatePDF:", error);
+      setLoading(false);
+    }
+  };
+
+  // const fileName = `qr_${i + 1}.png`;
+  // zip.file(fileName, dataURL.split(",")[1], { base64: true });
+
+  // const content = await zip.generateAsync({ type: "blob" });
+
+  // const link = document.createElement("a");
+  // link.href = URL.createObjectURL(content);
+  // link.download = "canvas_images.zip";
+  // link.click();
 
   const generatePreview = async () => {
     try {
@@ -194,6 +275,14 @@ const Generator = () => {
   };
   return (
     <div className="generator">
+      <div className="overlay" style={{ display: loading ? "block" : "none" }}>
+        <div className="load">
+          <span className="loader"></span>
+
+          <span className="loader-2"></span>
+        </div>
+      </div>
+
       <h1 style={{ margin: "auto" }}>STICKER GENERATOR</h1>
       <div className="files-up">
         <div className="excel-reader">
@@ -259,7 +348,7 @@ const Generator = () => {
       <button
         className="btn-up-g"
         disabled={loading}
-        onClick={() => generateSticker()}
+        onClick={() => generatePDF()}
       >
         GENERATE ALL
       </button>
