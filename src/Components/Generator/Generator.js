@@ -137,6 +137,11 @@ const Generator = () => {
 
       const objects = JSON.parse(jsonTemplate);
 
+      setCanSize({
+        height: Number(objects.canvasSize.height),
+        width: Number(objects.canvasSize.width),
+      });
+
       const pdf = new jsPDF("p", "mm", "a3"); // Initialize PDF
       const pageWidth = pdf.internal.pageSize.width;
       let currentX = 0;

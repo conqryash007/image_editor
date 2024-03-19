@@ -26,6 +26,9 @@ const Main = () => {
       height: canvasSize.height * 37.795275591,
       width: canvasSize.width * 37.795275591,
       preserveObjectStacking: true,
+      renderOnAddRemove: true, // Optional: Improves rendering performance
+      enableRetinaScaling: true, // Enable high DPI rendering
+      perPixelTargetFind: true, // Enable more accurate target detection
     });
     can.renderAll.bind(can)();
 
@@ -211,12 +214,15 @@ const Main = () => {
         value: "https://github.com/neocotic/qrious",
       });
 
+      const canvasCenterX = canvas.width / 2;
+      const canvasCenterY = canvas.height / 2;
+
       // Create a Fabric.js image object with the QR code data URL
       fabric.Image.fromURL(qr.toDataURL(), (img) => {
         // Set the position and size of the QR code on the canvas
         img.set({
-          left: 50,
-          top: 50,
+          left: canvasCenterX - img.width / 2,
+          top: canvasCenterY - img.height / 2,
           subType: "qr",
           qrSize: sizeOfQr,
         });
@@ -243,7 +249,18 @@ const Main = () => {
           const imageUrl = e.target.result;
 
           fabric.Image.fromURL(imageUrl, (img) => {
-            img.set({ subType: "BaseImage" });
+            // Calculate the center coordinates of the canvas
+            const canvasCenterX = canvas.width / 2;
+            const canvasCenterY = canvas.height / 2;
+
+            // Set the position and size of the uploaded image
+            img.set({
+              left: canvasCenterX - img.width / 2, // Center horizontally
+              top: canvasCenterY - img.height / 2, // Center vertically
+              subType: "BaseImage",
+            });
+
+            // Add the uploaded image to the canvas
             canvas.add(img);
             canvas.renderAll();
           });
@@ -256,6 +273,7 @@ const Main = () => {
       window.location.reload();
     }
   };
+
   const removeSelectedObject = (canvas) => {
     try {
       const selectedObject = canvas.getActiveObject();
@@ -310,6 +328,9 @@ const Main = () => {
           console.log(isBold);
           selectedObject.set({ fontWeight: isBold ? "bold" : "normal" });
         }
+      } else if (action === "setSize") {
+        const newSize = parseInt(event.target.value, 10);
+        selectedObject.set({ fontSize: newSize });
       }
       canvas.renderAll();
     } catch (err) {
@@ -365,7 +386,11 @@ const Main = () => {
 
         <label>
           Size:
-          <input className="css-input" type="number" />
+          <input
+            className="css-input"
+            type="number"
+            onChange={(e) => handleTextChange(e, "setSize")}
+          />
         </label>
 
         <button className="bbtn" onClick={(e) => handleTextChange(e, "bold")}>
