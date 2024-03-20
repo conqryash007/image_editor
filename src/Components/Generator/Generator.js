@@ -137,6 +137,8 @@ const Generator = () => {
 
       const objects = JSON.parse(jsonTemplate);
 
+      console.log(objects);
+
       setCanSize({
         height: Number(objects.canvasSize.height),
         width: Number(objects.canvasSize.width),
@@ -144,8 +146,12 @@ const Generator = () => {
 
       const pdf = new jsPDF("p", "mm", "a3"); // Initialize PDF
       const pageWidth = pdf.internal.pageSize.width;
-      let currentX = 0;
-      let currentY = 0;
+
+      let initX = 10;
+      let initY = 10;
+
+      let currentX = initX;
+      let currentY = initY;
 
       for (let i = 0; i < excelData.length; i++) {
         const currQr = excelData[i];
@@ -153,9 +159,11 @@ const Generator = () => {
         objects.objects.forEach((curr) => {
           if (curr["subType"] === CONSTANTS.id) {
             curr.text = currQr.id;
+            // curr.fill = `rgb(255,255,255)`;
           }
           if (curr["subType"] === CONSTANTS.pin) {
             curr.text = currQr.pin;
+            // curr.fill = `rgb(255,255,255)`;
           }
           if (curr["subType"] === CONSTANTS.qr) {
             const qr = new QRious({
@@ -177,20 +185,28 @@ const Generator = () => {
 
             const canvas = canvasRef.current;
             const dataURL = canvas.toDataURL({ format: "png" });
-            const imageWidth = (canvas.width * 25.4) / 96; // Convert pixels to mm
-            const imageHeight = (canvas.height * 25.4) / 96; // Convert pixels to mm
+            let imageWidth = (canvas.width * 25.4) / 96; // Convert pixels to mm
+            let imageHeight = (canvas.height * 25.4) / 96; // Convert pixels to mm
+
+            // square one
+            imageWidth += 5;
+            imageHeight += 5;
+
+            // rectangle one
+            // imageWidth += 9;
+            // imageHeight -= 15;
 
             // Check if there's enough space for the image
             if (currentX + imageWidth > pageWidth) {
-              currentX = 0;
+              currentX = initX;
               currentY += imageHeight;
             }
 
             // Check if there's enough space for the next row
             if (currentY + imageHeight > pdf.internal.pageSize.height) {
               pdf.addPage();
-              currentX = 0;
-              currentY = 0;
+              currentX = initX;
+              currentY = initY;
             }
 
             // Add image to PDF
@@ -209,16 +225,6 @@ const Generator = () => {
       setLoading(false);
     }
   };
-
-  // const fileName = `qr_${i + 1}.png`;
-  // zip.file(fileName, dataURL.split(",")[1], { base64: true });
-
-  // const content = await zip.generateAsync({ type: "blob" });
-
-  // const link = document.createElement("a");
-  // link.href = URL.createObjectURL(content);
-  // link.download = "canvas_images.zip";
-  // link.click();
 
   const generatePreview = async () => {
     try {
@@ -278,6 +284,7 @@ const Generator = () => {
       setLoading(false);
     }
   };
+
   return (
     <div className="generator">
       <div className="overlay" style={{ display: loading ? "block" : "none" }}>
